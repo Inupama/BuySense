@@ -1,32 +1,62 @@
-import pandas as pd
+from pathlib import Path
 
-from fastapi import FastAPI
+import joblib
+import pandas as pd
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from .schemas import ShoppingSession
-from .model import model, add_engineered_features
+from .schemas import PredictionInput, PredictionResponse
 
+
+# ---------------------------------------------------------
+# Application
+# ---------------------------------------------------------
 
 app = FastAPI(
     title="BuySense API",
-    description="Online Shopping Purchase Prediction API",
-    version="1.0"
+    description="Online Shopper Purchase Intention Prediction API",
+    version="1.0.0",
 )
 
 
+# ---------------------------------------------------------
+# CORS
+# ---------------------------------------------------------
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
+# ---------------------------------------------------------
+# Load model
+# ---------------------------------------------------------
+
+MODEL_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "models"
+    / "buysense_rf_pipeline.joblib"
+)
+
+model = joblib.load(MODEL_PATH)
+
+
+# ---------------------------------------------------------
+# Health check
+# ---------------------------------------------------------
+
 @app.get("/")
-def home():
+def root():
     return {
-        "message": "BuySense API is running"
+        "message": "BuySense API is running",
+        "status": "OK",
     }
 
 
@@ -34,33 +64,90 @@ def home():
 def health():
     return {
         "status": "healthy",
-        "model": "Random Forest"
+        "model_loaded": model is not None,
     }
 
 
-@app.post("/predict")
-def predict(session: ShoppingSession):
+# ---------------------------------------------------------
+# Prediction
+# ---------------------------------------------------------
 
-    input_data = pd.DataFrame([session.model_dump()])
+@app.post("/predict", response_model=PredictionResponse)
+def predict(data: PredictionInput):
 
-    input_data = add_engineered_features(input_data)
+    try:
+        # Convert request data into dictionary
+        input_data = data.model_dump()
 
-    prediction = int(model.predict(input_data)[0])
+        # -------------------------------------------------
+        # Feature Engineering
+        # -------------------------------------------------
 
-    probability = float(
-        model.predict_proba(input_data)[0][1]
-    )
+        total_pages = (
+            input_data["Administrative"]
+            + input_data["Informational"]
+            + input_data["ProductRelated"]
+        )
 
-    if prediction == 1:
-        result = "Purchase"
-        message = "The customer is likely to make a purchase."
-    else:
-        result = "No Purchase"
-        message = "The customer is unlikely to make a purchase."
+        total_duration = (
+            input_data["Administrative_Duration"]
+            + input_data["Informational_Duration"]
+            + input_data["ProductRelated_Duration"]
+        )
 
-    return {
-        "prediction": prediction,
-        "result": result,
-        "purchase_probability": round(probability, 4),
-        "message": message
-    }
+        if total_pages > 0:
+            avg_duration_per_page = total_duration / total_pages
+            product_page_share = (
+                input_data["ProductRelated"] / total_pages
+            )
+        else:
+            avg_duration_per_page = 0.0
+            product_page_share = 0.0
+
+        if total_duration > 0:
+            product_duration_share = (
+                input_data["ProductRelated_Duration"] / total_duration
+            )
+        else:
+            product_duration_share = 0.0
+
+        # -------------------------------------------------
+        # Add engineered features
+        # -------------------------------------------------
+
+        input_data["TotalPages"] = total_pages
+        input_data["TotalDuration"] = total_duration
+        input_data["AvgDurationPerPage"] = avg_duration_per_page
+        input_data["ProductPageShare"] = product_page_share
+        input_data["ProductDurationShare"] = product_duration_share
+
+        # -------------------------------------------------
+        # Create DataFrame
+        # -------------------------------------------------
+
+        df = pd.DataFrame([input_data])
+
+        # -------------------------------------------------
+        # Model prediction
+        # -------------------------------------------------
+
+        prediction = int(model.predict(df)[0])
+
+        probabilities = model.predict_proba(df)[0]
+
+        probability = float(probabilities[1])
+
+        # -------------------------------------------------
+        # Response
+        # -------------------------------------------------
+
+        return PredictionResponse(
+            prediction=prediction,
+            probability=probability,
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Prediction failed: {str(e)}",
+        )

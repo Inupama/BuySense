@@ -1,29 +1,33 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
-class ShoppingSession(BaseModel):
+class PredictionInput(BaseModel):
+    Administrative: int = Field(ge=0)
+    Administrative_Duration: float = Field(ge=0)
 
-    Administrative: int
-    Administrative_Duration: float
+    Informational: int = Field(ge=0)
+    Informational_Duration: float = Field(ge=0)
 
-    Informational: int
-    Informational_Duration: float
+    ProductRelated: int = Field(ge=0)
+    ProductRelated_Duration: float = Field(ge=0)
 
-    ProductRelated: int
-    ProductRelated_Duration: float
+    BounceRates: float = Field(ge=0, le=1)
+    ExitRates: float = Field(ge=0, le=1)
 
-    BounceRates: float
-    ExitRates: float
-    PageValues: float
-    SpecialDay: float
+    PageValues: float = Field(ge=0)
+    SpecialDay: float = Field(ge=0, le=1)
 
     Month: str
-
-    OperatingSystems: int
-    Browser: int
-    Region: int
-    TrafficType: int
+    OperatingSystems: int = Field(ge=1, le=8)
+    Browser: int = Field(ge=1, le=13)
+    Region: int = Field(ge=1, le=9)
+    TrafficType: int = Field(ge=1, le=20)
 
     VisitorType: str
 
     Weekend: bool
+
+
+class PredictionResponse(BaseModel):
+    prediction: int
+    probability: float
