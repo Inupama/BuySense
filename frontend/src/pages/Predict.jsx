@@ -110,21 +110,7 @@ function Predict(){
   const productDurationShare = totalDuration === 0 ? 0 : Number(form.ProductRelated_Duration || 0) / totalDuration;
 
   return (
-    <div className="app">
-
-      {/* Header */}
-      <header className="header">
-        <div className="header-content">
-          <div className="brand-icon">B</div>
-
-          <div>
-            <h1>BuySense</h1>
-            <p>Online Shopper Purchase Intention Prediction</p>
-          </div>
-        </div>
-      </header>
-
-      <main className="container">
+    <main className="container">
 
         {/* Introduction */}
         <section className="intro">
@@ -413,7 +399,7 @@ function Predict(){
                 <h2>Prediction Result</h2>
               </div>
 
-              <div className="result-status">
+              <div className="result-status" aria-label={purchaseLikely ? "Purchase predicted" : "No purchase predicted"}>
                 {purchaseLikely ? "✓" : "!"}
               </div>
             </div>
@@ -461,7 +447,7 @@ function Predict(){
                 <strong>{probability}%</strong>
               </div>
 
-              <div className="progress-track">
+              <div className="progress-track" role="progressbar" aria-label="Purchase probability" aria-valuenow={Number(probability)} aria-valuemin="0" aria-valuemax="100">
                 <div
                   className={
                     purchaseLikely
@@ -508,14 +494,6 @@ function Predict(){
 
       </main>
 
-      <footer>
-        <p>
-          BuySense &nbsp;•&nbsp; Machine Learning Purchase Intention
-          Prediction System
-        </p>
-      </footer>
-
-    </div>
   );
 }
 

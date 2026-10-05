@@ -12,20 +12,21 @@ function Navigation() {
   const location = useLocation();
 
   return (
-    <nav className="navbar">
+    <nav className="navbar" aria-label="Main navigation">
       <div className="navbar-inner">
 
         <Link to="/" className="brand">
           <div className="brand-icon">B</div>
           <div>
             <div className="brand-name">BuySense</div>
-            <div className="brand-subtitle">Purchase Intention Prediction</div>
+            <div className="brand-subtitle">Machine Learning Decision Support System</div>
           </div>
         </Link>
 
         <div className="nav-links">
           <Link
             to="/"
+            aria-current={location.pathname === "/" ? "page" : undefined}
             className={location.pathname === "/" ? "nav-link active" : "nav-link"}
           >
             Home
@@ -38,6 +39,7 @@ function Navigation() {
                 ? "nav-link active"
                 : "nav-link"
             }
+            aria-current={location.pathname === "/predict" ? "page" : undefined}
           >
             Predict
           </Link>
@@ -49,6 +51,7 @@ function Navigation() {
                 ? "nav-link active"
                 : "nav-link"
             }
+            aria-current={location.pathname === "/how-it-works" ? "page" : undefined}
           >
             How It Works
           </Link>
@@ -60,6 +63,7 @@ function Navigation() {
                 ? "nav-link active"
                 : "nav-link"
             }
+            aria-current={location.pathname === "/about" ? "page" : undefined}
           >
             About
           </Link>
@@ -89,29 +93,6 @@ function App() {
           <Route path="/about" element={<About />} />
 
         </Routes>
-
-        <footer className="footer">
-          <div className="footer-inner">
-            <div className="footer-brand">
-              <div className="brand-icon" style={{ width: '36px', height: '36px', fontSize: '18px' }}>B</div>
-              <div>
-                <strong>BuySense</strong>
-                <p>Machine Learning Decision Support System</p>
-              </div>
-            </div>
-
-            <div className="footer-links">
-              <Link to="/">Home</Link>
-              <Link to="/predict">Predict</Link>
-              <Link to="/how-it-works">How It Works</Link>
-              <Link to="/about">About</Link>
-            </div>
-          </div>
-          
-          <div className="footer-bottom">
-            <p>Online Shopper Purchase Intention Prediction System. FDM Project.</p>
-          </div>
-        </footer>
 
       </div>
 
