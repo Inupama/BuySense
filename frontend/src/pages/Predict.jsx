@@ -5,16 +5,16 @@ import "../App.css";
 const API_URL = "http://localhost:8000";
 
 const initialForm = {
-  Administrative: 0,
-  Administrative_Duration: 0,
-  Informational: 0,
-  Informational_Duration: 0,
-  ProductRelated: 0,
-  ProductRelated_Duration: 0,
-  BounceRates: 0,
-  ExitRates: 0,
-  PageValues: 0,
-  SpecialDay: 0,
+  Administrative: "",
+  Administrative_Duration: "",
+  Informational: "",
+  Informational_Duration: "",
+  ProductRelated: "",
+  ProductRelated_Duration: "",
+  BounceRates: "",
+  ExitRates: "",
+  PageValues: "",
+  SpecialDay: "",
   Month: "Feb",
   OperatingSystems: 1,
   Browser: 1,
@@ -39,7 +39,7 @@ function Predict(){
         type === "checkbox"
           ? checked
           : type === "number"
-          ? Number(value)
+          ? value
           : value,
     }));
 
@@ -54,7 +54,17 @@ function Predict(){
     setResult(null);
 
     try {
-      const response = await axios.post(`${API_URL}/predict`, form);
+      const numericFields = [
+        "Administrative", "Administrative_Duration", "Informational",
+        "Informational_Duration", "ProductRelated", "ProductRelated_Duration",
+        "BounceRates", "ExitRates", "PageValues", "SpecialDay",
+        "OperatingSystems", "Browser", "Region", "TrafficType",
+      ];
+      const payload = { ...form };
+      numericFields.forEach((field) => {
+        payload[field] = Number(form[field] || 0);
+      });
+      const response = await axios.post(`${API_URL}/predict`, payload);
 
       setResult(response.data);
     } catch (err) {
@@ -158,7 +168,7 @@ function Predict(){
               </div>
               <div className="field">
                 <label htmlFor="SpecialDay">Special Day</label>
-                <input id="SpecialDay" name="SpecialDay" type="number" min="0" max="1" step="0.01" value={form.SpecialDay} onChange={handleChange} required />
+                <input id="SpecialDay" name="SpecialDay" type="number" min="0" max="1" step="0.01" placeholder="0" value={form.SpecialDay} onChange={handleChange} />
                 <span className="field-help">Proximity to a special day (0 to 1)</span>
               </div>
             </div>
@@ -186,17 +196,17 @@ function Predict(){
             <div className="form-grid">
               <div className="field">
                 <label htmlFor="Administrative">Administrative Pages</label>
-                <input id="Administrative" name="Administrative" type="number" min="0" value={form.Administrative} onChange={handleChange} required />
+                <input id="Administrative" name="Administrative" type="number" min="0" placeholder="0" value={form.Administrative} onChange={handleChange} />
                 <span className="field-help">Number of administrative pages</span>
               </div>
               <div className="field">
                 <label htmlFor="Informational">Informational Pages</label>
-                <input id="Informational" name="Informational" type="number" min="0" value={form.Informational} onChange={handleChange} required />
+                <input id="Informational" name="Informational" type="number" min="0" placeholder="0" value={form.Informational} onChange={handleChange} />
                 <span className="field-help">Number of informational pages</span>
               </div>
               <div className="field">
                 <label htmlFor="ProductRelated">Product-Related Pages</label>
-                <input id="ProductRelated" name="ProductRelated" type="number" min="0" value={form.ProductRelated} onChange={handleChange} required />
+                <input id="ProductRelated" name="ProductRelated" type="number" min="0" placeholder="0" value={form.ProductRelated} onChange={handleChange} />
                 <span className="field-help">Number of product pages</span>
               </div>
             </div>
@@ -214,32 +224,32 @@ function Predict(){
             <div className="form-grid">
               <div className="field">
                 <label htmlFor="Administrative_Duration">Administrative Duration</label>
-                <input id="Administrative_Duration" name="Administrative_Duration" type="number" min="0" step="0.01" value={form.Administrative_Duration} onChange={handleChange} required />
+                <input id="Administrative_Duration" name="Administrative_Duration" type="number" min="0" step="0.01" placeholder="0" value={form.Administrative_Duration} onChange={handleChange} />
                 <span className="field-help">Time on admin pages</span>
               </div>
               <div className="field">
                 <label htmlFor="Informational_Duration">Informational Duration</label>
-                <input id="Informational_Duration" name="Informational_Duration" type="number" min="0" step="0.01" value={form.Informational_Duration} onChange={handleChange} required />
+                <input id="Informational_Duration" name="Informational_Duration" type="number" min="0" step="0.01" placeholder="0" value={form.Informational_Duration} onChange={handleChange} />
                 <span className="field-help">Time on info pages</span>
               </div>
               <div className="field">
                 <label htmlFor="ProductRelated_Duration">Product Duration</label>
-                <input id="ProductRelated_Duration" name="ProductRelated_Duration" type="number" min="0" step="0.01" value={form.ProductRelated_Duration} onChange={handleChange} required />
+                <input id="ProductRelated_Duration" name="ProductRelated_Duration" type="number" min="0" step="0.01" placeholder="0" value={form.ProductRelated_Duration} onChange={handleChange} />
                 <span className="field-help">Time on product pages</span>
               </div>
               <div className="field">
                 <label htmlFor="BounceRates">Bounce Rate</label>
-                <input id="BounceRates" name="BounceRates" type="number" min="0" max="1" step="0.0001" value={form.BounceRates} onChange={handleChange} required />
+                <input id="BounceRates" name="BounceRates" type="number" min="0" max="1" step="0.0001" placeholder="0" value={form.BounceRates} onChange={handleChange} />
                 <span className="field-help">Value between 0 and 1</span>
               </div>
               <div className="field">
                 <label htmlFor="ExitRates">Exit Rate</label>
-                <input id="ExitRates" name="ExitRates" type="number" min="0" max="1" step="0.0001" value={form.ExitRates} onChange={handleChange} required />
+                <input id="ExitRates" name="ExitRates" type="number" min="0" max="1" step="0.0001" placeholder="0" value={form.ExitRates} onChange={handleChange} />
                 <span className="field-help">Value between 0 and 1</span>
               </div>
               <div className="field">
                 <label htmlFor="PageValues">Page Value</label>
-                <input id="PageValues" name="PageValues" type="number" min="0" step="0.01" value={form.PageValues} onChange={handleChange} required />
+                <input id="PageValues" name="PageValues" type="number" min="0" step="0.01" placeholder="0" value={form.PageValues} onChange={handleChange} />
                 <span className="field-help">Average page value</span>
               </div>
             </div>
